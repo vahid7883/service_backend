@@ -1,0 +1,1 @@
+RENAME TABLE shopping_basket TO shopping_baskets;
