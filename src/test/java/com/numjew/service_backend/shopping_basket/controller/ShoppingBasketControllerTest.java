@@ -209,6 +209,23 @@ class ShoppingBasketControllerTest {
     }
 
     @Test
+    void shouldRejectQuantityGreaterThan100() throws Exception {
+        var basketId = UUID.randomUUID();
+        var productVariantId = 10L;
+
+        mockMvc.perform(
+                        put("/shopping-baskets/{basketId}/items/{productVariantId}",
+                                basketId, productVariantId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                        "quantity": 101
+                                    }
+                                    """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void shouldRemoveItem() throws Exception {
         var user = User.builder()
                 .id(1L)
