@@ -28,6 +28,8 @@ public class User {
     private String password;
 
     @Column(name = "role")
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Role role = Role.GUEST;
+
 }
