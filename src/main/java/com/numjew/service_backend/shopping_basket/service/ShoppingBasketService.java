@@ -1,5 +1,7 @@
 package com.numjew.service_backend.shopping_basket.service;
 
+import com.numjew.service_backend.product.domain.ProductVariantStatus;
+import com.numjew.service_backend.product.exception.ProductVariantNotAvailableException;
 import com.numjew.service_backend.shopping_basket.mapper.ShoppingBasketItemMapper;
 import com.numjew.service_backend.shopping_basket.mapper.ShoppingBasketMapper;
 import com.numjew.service_backend.product.exception.ProductVariantNotFoundException;
@@ -41,6 +43,9 @@ public class ShoppingBasketService {
         var variant = productVariantRepository
                 .findById(productVariantId)
                 .orElseThrow(ProductVariantNotFoundException::new);
+        if (variant.getStatus() != ProductVariantStatus.ACTIVE) {
+            throw new ProductVariantNotAvailableException();
+        }
 
         basket.addItem(variant.getId());
         shoppingBasketRepository.save(basket);
