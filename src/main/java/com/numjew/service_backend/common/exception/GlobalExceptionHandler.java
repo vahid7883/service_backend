@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -67,5 +69,15 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(status).body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValid( MethodArgumentNotValidException ex, WebRequest request) {
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .distinct() .collect(Collectors.joining("; "));
+        return buildResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 }
