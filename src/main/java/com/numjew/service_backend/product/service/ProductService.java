@@ -3,6 +3,8 @@ package com.numjew.service_backend.product.service;
 
 import com.numjew.service_backend.brand.exception.BrandNotFoundException;
 import com.numjew.service_backend.brand.repository.BrandRepository;
+import com.numjew.service_backend.category.exception.CategoryNotFoundException;
+import com.numjew.service_backend.category.repository.CategoryRepository;
 import com.numjew.service_backend.product.domain.Product;
 import com.numjew.service_backend.product.domain.ProductStatus;
 import com.numjew.service_backend.product.dto.CreateProductRequest;
@@ -11,6 +13,7 @@ import com.numjew.service_backend.product.dto.UpdateProductRequest;
 import com.numjew.service_backend.product.exception.DuplicateProductSlugException;
 import com.numjew.service_backend.product.exception.InvalidProductSlugException;
 import com.numjew.service_backend.product.exception.ProductNotFoundException;
+import com.numjew.service_backend.product.repository.ProductCategoryRepository;
 import com.numjew.service_backend.product.repository.ProductRepository;
 import com.numjew.service_backend.product.mapper.ProductMapper;
 import lombok.AllArgsConstructor;
@@ -28,7 +31,7 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final BrandRepository brandRepository;
     private final ProductSlugGenerator slugGenerator;
-
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public ProductDto createProduct(CreateProductRequest request) {
@@ -136,6 +139,19 @@ public class ProductService {
                 .orElseThrow(ProductNotFoundException::new);
 
         productRepository.delete(product);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductDto> getAllProductsByCategoryId(Long categoryId) {
+
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new CategoryNotFoundException("Category not found with id: " + categoryId);
+        }
+
+        return productRepository.findAllByCategoryId(categoryId)
+                .stream()
+                .map(productMapper::toDto)
+                .toList();
     }
 
 

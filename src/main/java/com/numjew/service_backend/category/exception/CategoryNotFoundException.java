@@ -1,4 +1,4 @@
-package com.numjew.service_backend.exeptions;
+package com.numjew.service_backend.category.exception;
 
 
 public class CategoryNotFoundException extends RuntimeException {

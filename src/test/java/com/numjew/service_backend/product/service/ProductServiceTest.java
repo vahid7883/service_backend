@@ -19,6 +19,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.numjew.service_backend.category.exception.CategoryNotFoundException;
+import com.numjew.service_backend.category.repository.CategoryRepository;
 
 import java.util.List;
 
@@ -41,6 +43,8 @@ class ProductServiceTest {
     @Mock
     private ProductSlugGenerator slugGenerator;
 
+    @Mock
+    private CategoryRepository categoryRepository;
     @InjectMocks
     private ProductService productService;
 
@@ -649,6 +653,95 @@ class ProductServiceTest {
         );
 
         verify(productRepository, never()).delete(any(Product.class));
+    }
+
+
+    @Test
+    void shouldReturnProductsForExistingCategory() {
+
+        // Arrange
+        Long categoryId = 5L;
+
+        Product product = Product.builder()
+                .id(10L)
+                .name("Wireless Headphones")
+                .brandId(1L)
+                .slug("wireless-headphones")
+                .status(ProductStatus.DRAFT)
+                .build();
+
+        ProductDto dto = new ProductDto();
+        dto.setId(10L);
+        dto.setName("Wireless Headphones");
+        dto.setBrandId(1L);
+
+        when(categoryRepository.existsById(categoryId))
+                .thenReturn(true);
+
+        when(productRepository.findAllByCategoryId(categoryId))
+                .thenReturn(List.of(product));
+
+        when(productMapper.toDto(product))
+                .thenReturn(dto);
+
+        // Act
+        List<ProductDto> result =
+                productService.getAllProductsByCategoryId(categoryId);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(10L, result.get(0).getId());
+        assertEquals("Wireless Headphones", result.get(0).getName());
+
+        verify(categoryRepository).existsById(categoryId);
+        verify(productRepository).findAllByCategoryId(categoryId);
+        verify(productMapper).toDto(product);
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenCategoryHasNoProducts() {
+
+        // Arrange
+        Long categoryId = 5L;
+
+        when(categoryRepository.existsById(categoryId))
+                .thenReturn(true);
+
+        when(productRepository.findAllByCategoryId(categoryId))
+                .thenReturn(List.of());
+
+        // Act
+        List<ProductDto> result =
+                productService.getAllProductsByCategoryId(categoryId);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(categoryRepository).existsById(categoryId);
+        verify(productRepository).findAllByCategoryId(categoryId);
+        verifyNoInteractions(productMapper);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCategoryDoesNotExistForProductSearch() {
+
+        // Arrange
+        Long categoryId = 99L;
+
+        when(categoryRepository.existsById(categoryId))
+                .thenReturn(false);
+
+        // Act & Assert
+        assertThrows(
+                CategoryNotFoundException.class,
+                () -> productService.getAllProductsByCategoryId(categoryId)
+        );
+
+        verify(categoryRepository).existsById(categoryId);
+        verify(productRepository, never())
+                .findAllByCategoryId(anyLong());
+        verifyNoInteractions(productMapper);
     }
 
 }
