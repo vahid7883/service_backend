@@ -31,6 +31,7 @@ public class Product {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ProductStatus status = ProductStatus.DRAFT;
 
     @Column(name = "brand_id", nullable = false)

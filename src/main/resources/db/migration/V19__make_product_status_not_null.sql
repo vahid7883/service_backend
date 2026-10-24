@@ -1,0 +1,3 @@
+
+ALTER TABLE products
+    MODIFY COLUMN status VARCHAR(255) NOT NULL;
